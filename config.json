@@ -1,8 +1,6 @@
 {
-  "https": 5,
-  "domain_name": 20,
-  "domain_age": 30,
-  "page": 5,
-  "reviews": 40,
-  "forum": 0
+  "https": 25,
+  "domain_name": 25,
+  "domain_age": 25,
+  "reviews": 25
 }

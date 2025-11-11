@@ -1,0 +1,33 @@
+    # ✅ Reddit/forum mention check (from features)
+    is_reported, mentions = search_reddit_forum_mentions(url)
+    print(f"[DEBUG] Reddit scam found for {url}: {is_reported}, mentions: {mentions}")
+    if is_reported:
+        reasons.append("❌ Reported in scam forums like Reddit")
+        print(['url'])
+    else:
+        total_score += WEIGHTS["forum"]
+        reasons.append("✅ No scam reports found on public forums")
+
+
+
+    # ✅ Page content check (from features)
+    page_features = check_page_features(url)
+    if "error" in page_features:
+        reasons.append(f"❌ Failed to analyze page content: {page_features['error']}")
+    else:
+        if any([
+            page_features.get("is_informative"),
+            page_features.get("has_h1"),
+            page_features.get("has_important_links"),
+            page_features.get("has_product_listings"),
+            page_features.get("has_social_links")
+        ]):
+            total_score += WEIGHTS["page"]
+            reasons.append("✅ Page looks informative")
+        else:
+            reasons.append("❌ Page content looks too thin")
+
+
+# config.json
+  "page": 5,
+  "forum": 0

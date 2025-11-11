@@ -44,24 +44,7 @@ def calculate_score(url: str, review_text: str = None) -> (float, list):
         total_score += WEIGHTS["domain_age"]
         reasons.append(f"✅ Domain age is acceptable ({domain_age} days old)")
 
-    # ✅ Page content check
-    page_features = check_page_features(url)
-    if "error" in page_features:
-        reasons.append(f"❌ Failed to analyze page content: {page_features['error']}")
-    else:
-        if any([
-            page_features.get("is_informative"),
-            page_features.get("has_h1"),
-            page_features.get("has_important_links"),
-            page_features.get("has_product_listings"),
-            page_features.get("has_social_links")
-        ]):
-            total_score += WEIGHTS["page"]
-            reasons.append("✅ Page looks informative")
-        else:
-            reasons.append("❌ Page content looks too thin")
-
-    # ✅ ML review scoring
+    # ML review scoring
     auto_reviews = get_reviews_trustpilot(url)
     fake_count = 0
     for rev in auto_reviews:
@@ -74,15 +57,5 @@ def calculate_score(url: str, review_text: str = None) -> (float, list):
         reasons.append("✅ Most public reviews seem genuine")
     else:
         reasons.append(f"❌ {fake_count}/10 reviews seem fake")
-
-    # ✅ Reddit/forum mention check
-    is_reported, mentions = search_reddit_forum_mentions(url)
-    print(f"[DEBUG] Reddit scam found for {url}: {is_reported}, mentions: {mentions}")
-    if is_reported:
-        reasons.append("❌ Reported in scam forums like Reddit")
-        print(['url'])
-    else:
-        total_score += WEIGHTS["forum"]
-        reasons.append("✅ No scam reports found on public forums")
 
     return round(total_score, 2), reasons

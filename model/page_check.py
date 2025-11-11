@@ -25,7 +25,7 @@ def check_page_features(url: str) -> dict:
         has_product_listings = len(product_like_divs) >= 3
 
         # Social media presence
-        social_links = ['facebook.com', 'instagram.com', 'twitter.com', 'linkedin.com']
+        social_links = ['facebook.com', 'instagram.com', 'X.com', 'linkedin.com']
         has_social_links = any(link in html for link in social_links)
 
         return {
