@@ -3,8 +3,18 @@ import json
 import os
 from urllib.parse import urlparse
 
-# Load config.json
-CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.json")
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+CONFIG_PATH = os.path.join(ROOT_DIR, "config.json")
+
+print(f"[traffic_rank] Loading config from: {CONFIG_PATH}")
+
+if not os.path.exists(CONFIG_PATH):
+    print("config.json not found → traffic rank will return -1")
+    CONFIG = {}
+else:
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        CONFIG = json.load(f)
+    print("[traffic_rank] config.json loaded")
 
 try:
     with open(CONFIG_PATH, "r") as f:

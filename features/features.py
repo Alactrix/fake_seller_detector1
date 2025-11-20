@@ -14,8 +14,14 @@ import json
 import os
 
 # Load weights from config.json
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', 'config.json')
-with open(CONFIG_PATH, 'r') as f:
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+CONFIG_PATH = os.path.join(ROOT_DIR, 'config.json')
+
+print(f"[features] Loading config from: {CONFIG_PATH}")
+if not os.path.exists(CONFIG_PATH):
+    raise FileNotFoundError(f"config.json NOT FOUND!\nExpected at:\n{CONFIG_PATH}")
+
+with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
     WEIGHTS = json.load(f)
 
 
@@ -40,12 +46,13 @@ def calculate_score(url: str, review_text: str = None) -> (float, list):
     # ✅ Domain age check
     domain_age = get_domain_age_days(url)
     if domain_age == -1:
-        reasons.append("❌ Could not determine domain age")
+        reasons.append("Domain age hidden (privacy protected — common for legit sites)")
+        total_score += WEIGHTS["domain_age"]
     elif domain_age < 180:
-        reasons.append(f"❌ Domain is too new ({domain_age} days old)")
+        reasons.append(f"Domain is very new ({domain_age} days old) — High risk")
     else:
         total_score += WEIGHTS["domain_age"]
-        reasons.append(f"✅ Domain age is acceptable ({domain_age} days old)")
+        reasons.append(f"Established domain ({domain_age:,} days old)")
 
     # ML review scoring
     auto_reviews = get_reviews_trustpilot(url)
