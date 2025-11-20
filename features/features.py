@@ -115,3 +115,4 @@ def calculate_score(url: str, review_text: str = None) -> (float, list):
     
     return round(total_score, 2), reasons
 
+#hey
