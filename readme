@@ -1,1 +1,3 @@
-helo
+This project is for Fake Seller Detector
+It has multiple features which learns and recognizes patterns of websites being a scam
+It has another layer of ML where the features are used on a known scam/non-scam dataset to train the weights of the features
