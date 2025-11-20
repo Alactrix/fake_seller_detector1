@@ -71,30 +71,47 @@ def calculate_score(url: str, review_text: str = None) -> (float, list):
 
 
 
-    # ✅ Traffic Rank check
-    rank = get_traffic_rank(url)
+    # ✅ Traffic Rank / Visits scoring
+    traffic = get_traffic_rank(url)
 
-    # Ensure integer normalization
-    try:
-        rank = int(rank)
-    except (ValueError, TypeError):
-        rank = -1
-
-    if rank == -1 or rank is None:
-        reasons.append("❌ Could not determine traffic rank")
+    if not traffic:
+        reasons.append("❌ Could not determine website traffic")
     else:
-        # Adjusted thresholds for more realistic scoring
-        if rank <= 100_000:
-            total_score += WEIGHTS.get("traffic_rank", 2)
-            reasons.append(f"✅ Very high traffic site (Global Rank #{rank:,})")
-        elif rank <= 500_000:
-            total_score += WEIGHTS.get("traffic_rank", 1.5)
-            reasons.append(f"⚠️ Good traffic site (Global Rank #{rank:,})")
-        elif rank <= 1_000_000:
-            total_score += WEIGHTS.get("traffic_rank", 1)
-            reasons.append(f"⚠️ Moderate traffic site (Global Rank #{rank:,})")
+        rank = traffic.get("rank")
+        visits = traffic.get("visits")
+
+        # --- Rank-based scoring ---
+        if rank is not None and isinstance(rank, int) and rank > 0:
+            if rank <= 100_000:
+                total_score += WEIGHTS.get("traffic_rank", 2)
+                reasons.append(f"✅ Very high traffic (Global Rank #{rank:,})")
+            elif rank <= 500_000:
+                total_score += WEIGHTS.get("traffic_rank", 1.5)
+                reasons.append(f"⚠️ Good traffic (Global Rank #{rank:,})")
+            elif rank <= 1_000_000:
+                total_score += WEIGHTS.get("traffic_rank", 1)
+                reasons.append(f"⚠️ Moderate traffic (Global Rank #{rank:,})")
+            else:
+                reasons.append(f"❌ Low traffic (Global Rank #{rank:,}) — possibly new or suspicious")
+
+        # --- Visits-based scoring (fallback if no rank) ---
+        elif visits is not None and isinstance(visits, int) and visits > 0:
+            if visits >= 50_000_000:
+                total_score += WEIGHTS.get("traffic_rank", 2)
+                reasons.append(f"✅ Very high traffic ({visits:,} monthly visits)")
+            elif visits >= 10_000_000:
+                total_score += WEIGHTS.get("traffic_rank", 1.5)
+                reasons.append(f"⚠️ Good traffic ({visits:,} monthly visits)")
+            elif visits >= 1_000_000:
+                total_score += WEIGHTS.get("traffic_rank", 1)
+                reasons.append(f"⚠️ Moderate traffic ({visits:,} monthly visits)")
+            else:
+                reasons.append(f"❌ Very low traffic ({visits:,} monthly visits) — possibly suspicious")
+
         else:
-            reasons.append(f"❌ Low traffic site (Global Rank #{rank:,}) — possibly new or suspicious")
+            reasons.append("❌ Could not determine website traffic metrics")
 
-
+    
+    
     return round(total_score, 2), reasons
+

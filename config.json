@@ -5,6 +5,7 @@
     "reviews": 5.15,
     "traffic_rank": 2.1,
     "typosquatting": 22.64,
-    "TRAFFIC_API_KEY": "f23a755e02msh92392068d50c42ap166e51jsne7f6df26ecab",
-    "RAPIDAPI_TRAFFIC_HOST": "web-traffic.p.rapidapi.com"
+    "TRAFFIC_API_KEY": "058f394bb8msh2c1a4ca16f22856p100a02jsn3f7c6a263906",
+    "API_HOST": "similarweb-api1.p.rapidapi.com"
 }
+

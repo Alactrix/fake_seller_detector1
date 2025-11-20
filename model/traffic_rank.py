@@ -1,9 +1,9 @@
 import requests
 import json
 import os
-from urllib.parse import quote_plus
+from urllib.parse import urlparse
 
-# ✅ Load config.json (from project root)
+# Load config.json
 CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.json")
 
 try:
@@ -14,52 +14,69 @@ except Exception as e:
     CONFIG = {}
 
 API_KEY = CONFIG.get("TRAFFIC_API_KEY", "")
-API_HOST = CONFIG.get("RAPIDAPI_TRAFFIC_HOST", "")
+API_HOST = "similarweb-api1.p.rapidapi.com"
+
+
+def extract_domain(url: str):
+    parsed = urlparse(url if url.startswith("http") else "https://" + url)
+    return parsed.netloc
+
 
 def get_traffic_rank(url: str):
-    """Fetch global traffic rank for a given website using RapidAPI."""
+    """Return {'rank': int or None, 'visits': int or None} from SimilarWeb."""
     try:
-        encoded_site = quote_plus(url)
-        endpoint = f"https://{API_HOST}/webtraffic/getTraffic?site={encoded_site}"
+        domain = extract_domain(url)
+        endpoint = f"https://{API_HOST}/v1/visitsInfo"
 
         headers = {
+            "Content-Type": "application/json",
             "x-rapidapi-key": API_KEY,
-            "x-rapidapi-host": API_HOST
+            "x-rapidapi-host": API_HOST,
         }
 
-        print(f"🔍 Fetching rank for: {url}")
-        response = requests.get(endpoint, headers=headers, timeout=15)
+        body = {"q": domain}
+
+        print(f"🔍 Fetching SimilarWeb visitsInfo for: {domain}")
+        response = requests.post(endpoint, headers=headers, json=body, timeout=15)
         print(f"🔍 Status Code: {response.status_code}")
 
-        if response.status_code != 200:
+        if response.status_code not in (200, 201):
             print(f"❌ API Error: {response.text}")
-            return -1
+            return None
 
         data = response.json()
-        print(f"🔍 Raw API Response keys: {list(data.keys())}")
+        print("🔍 Parsed response keys:", list(data.keys()))
 
-        # ✅ Try different possible rank fields
+        # -------- Extract RANK ----------
         rank = None
-        if "ranks" in data:
-            if "globalRank" in data["ranks"]:
-                rank = data["ranks"]["globalRank"].get("rank")
-            elif isinstance(data["ranks"], dict):
-                rank = next(iter(data["ranks"].values())).get("rank", None)
+        if "GlobalRank" in data and isinstance(data["GlobalRank"], dict):
+            rank = data["GlobalRank"].get("Rank")
 
-        if rank is None and "rankings" in data:
-            rank = data["rankings"].get("globalRank", None)
+        # Convert rank
+        try:
+            rank = int(rank) if rank is not None else None
+        except:
+            rank = None
 
-        if rank is None:
-            print("⚠️ No rank field found in response.")
-            return -1
+        # -------- Extract VISITS ----------
+        visits = None
+        if "Engagments" in data and isinstance(data["Engagments"], dict):
+            raw_visits = data["Engagments"].get("Visits")
+            try:
+                visits = int(float(raw_visits))
+            except:
+                visits = None
 
-        return int(rank)
+        return {
+            "rank": rank,
+            "visits": visits
+        }
 
     except Exception as e:
         print(f"⚠️ Exception in get_traffic_rank(): {e}")
-        return -1
+        return None
 
 
-# Debug run
+# Debug
 if __name__ == "__main__":
-    print(get_traffic_rank("https://amazon.in"))
+    print(get_traffic_rank("webportal.jiit.ac.in/jiitwebkiosk/"))
